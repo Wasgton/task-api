@@ -1,12 +1,15 @@
 package com.todo.tasks.controllers;
 import com.todo.tasks.models.entities.Task;
 import com.todo.tasks.repositories.TaskRepository;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,6 +20,11 @@ public class TaskController {
     @Autowired
     private TaskRepository taskRepository;
 
+    @GetMapping
+    public List<Task> getAllTask(){
+        return taskRepository.findAll();
+    }
+
     @PostMapping("/{task}")
     public Task store(@PathVariable(name="task") String task) {
         Task newTask = new Task(task);
@@ -24,47 +32,48 @@ public class TaskController {
         return newTask;
     }
 
-    @GetMapping
-    public Iterable<Task> getAllTask(){
-        return taskRepository.findAll();
-    }
+    @GetMapping("/{id}")
+    public Task getById(@PathVariable(name="id") long id){
+        Optional<Task> optionalTask = taskRepository.findById(id);
 
-    @PutMapping
-    public Task updateTask(@RequestParam Map<String,String> allParams) throws Exception {
-
-        if(!allParams.containsKey("id")) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task não informada");
+        if(optionalTask.isEmpty()){
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
         }
 
-        Optional<Task> optionalTask = taskRepository.findById(Long.parseLong(allParams.get("id")));
+        return optionalTask.get();
+    }
+
+    @PutMapping("/{id}")
+    public Task updateTask(
+            @PathVariable(name="id") long id,
+            @RequestParam(required = false,name = "task") Optional<String> taskDescription,
+            @RequestParam(required = false, name = "done") Optional<Boolean> done
+    ){
+        Optional<Task> optionalTask = taskRepository.findById(id);
         if(optionalTask.isEmpty()){
-            throw new Exception("Task não encontrada");
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
         }
         Task task = optionalTask.get();
 
-        if(allParams.containsKey("task")){
-            task.setTask(allParams.get("task"));
-        }
-        if(allParams.containsKey("done")){
-            task.setDone(Boolean.parseBoolean(allParams.get("done")));
-        }
+        task.setTask(taskDescription.orElseGet(task::getTask));
+        task.setStatus(done.orElseGet(task::isDone));
 
         taskRepository.save(task);
         return task;
     }
 
     @DeleteMapping
-    public String deleteTask(@RequestParam String id) throws Exception {
-        Optional<Task> optionalTask = taskRepository.findById(Long.parseLong(id));
+    public String deleteTask(@RequestParam Long id){
+        Optional<Task> optionalTask = taskRepository.findById(id);
 
         if(optionalTask.isEmpty()){
-            throw new Exception("Task não encontrada");
+           ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
         }
 
         Task task = optionalTask.get();
         taskRepository.delete(task);
 
-        return "Task removida com sucesso";
+        return "Removed successfully";
     }
 
 }
