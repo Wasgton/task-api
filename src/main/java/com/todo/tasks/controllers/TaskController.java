@@ -1,16 +1,13 @@
 package com.todo.tasks.controllers;
+
 import com.todo.tasks.models.entities.Task;
 import com.todo.tasks.repositories.TaskRepository;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.Option;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -25,8 +22,8 @@ public class TaskController {
         return taskRepository.findAll();
     }
 
-    @PostMapping("/{task}")
-    public Task store(@PathVariable(name="task") String task) {
+    @PostMapping()
+    public Task store(@RequestParam() String task) {
         Task newTask = new Task(task);
         taskRepository.save(newTask);
         return newTask;
@@ -62,8 +59,8 @@ public class TaskController {
         return task;
     }
 
-    @DeleteMapping
-    public String deleteTask(@RequestParam Long id){
+    @DeleteMapping("/{id}")
+    public String deleteTask(@PathVariable(name="id") long id){
         Optional<Task> optionalTask = taskRepository.findById(id);
 
         if(optionalTask.isEmpty()){
