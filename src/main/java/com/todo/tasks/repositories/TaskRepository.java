@@ -6,6 +6,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
-public interface TaskRepository extends JpaRepository<Task, Long>{//CrudRepository<Task,Integer> {
-//    Optional<Task> findById(Long id);
+public interface TaskRepository extends JpaRepository<Task, Long>{
+
 }
