@@ -2,6 +2,7 @@ package com.todo.tasks.controllers;
 
 import com.todo.tasks.models.entities.Task;
 import com.todo.tasks.repositories.TaskRepository;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,25 +31,25 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public Task getById(@PathVariable(name="id") long id){
+    public ResponseEntity<Object> getById(@PathVariable(name="id") long id){
         Optional<Task> optionalTask = taskRepository.findById(id);
 
         if(optionalTask.isEmpty()){
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not founddasd");
         }
 
-        return optionalTask.get();
+        return ResponseEntity.status(HttpStatus.OK).body(optionalTask.get());
     }
 
     @PutMapping("/{id}")
-    public Task updateTask(
+    public ResponseEntity<Object> updateTask(
             @PathVariable(name="id") long id,
             @RequestParam(required = false,name = "task") Optional<String> taskDescription,
             @RequestParam(required = false, name = "done") Optional<Boolean> done
     ){
         Optional<Task> optionalTask = taskRepository.findById(id);
         if(optionalTask.isEmpty()){
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
         }
         Task task = optionalTask.get();
 
@@ -56,21 +57,21 @@ public class TaskController {
         task.setStatus(done.orElseGet(task::isDone));
 
         taskRepository.save(task);
-        return task;
+        return ResponseEntity.status(HttpStatus.OK).body(task);
     }
 
     @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable(name="id") long id){
+    public ResponseEntity<String> deleteTask(@PathVariable(name="id") long id){
         Optional<Task> optionalTask = taskRepository.findById(id);
 
         if(optionalTask.isEmpty()){
-           ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
         }
 
         Task task = optionalTask.get();
         taskRepository.delete(task);
 
-        return "Removed successfully";
+        return ResponseEntity.status(HttpStatus.OK).body("Removed successfully");
     }
 
 }
